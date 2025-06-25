@@ -16,6 +16,10 @@ def gaussian_plus_lorentzian(x, amp_g1, cen_g1, wid_g1, amp_l, cen_l, wid_l, y):
 # thorough a-Si with c-Si (need to read literature)
 def triple_gaussian_plus_lorentzian(x, amp_g1, cen_g1, wid_g1, amp_g2, cen_g2, wid_g2, amp_g3, cen_g3, wid_g3, amp_l, cen_l, wid_l, y):
     return amp_g1*np.exp(-(x.astype(float)-cen_g1)**2/(2*(wid_g1/2.354)**2)) + amp_g2*np.exp(-(x.astype(float)-cen_g2)**2/(2*(wid_g2/2.354)**2)) + amp_g3*np.exp(-(x.astype(float)-cen_g3)**2/(2*(wid_g3/2.354)**2)) + amp_l*wid_l**2/((x-cen_l)**2+wid_l**2) + y
+# a-C
+def fano_plus_lorentzian(x, amp_l, cen_l, wid_l, amp_f, cen_f, wid_f, q, gradient, y_0): # sum of Fano and Lorentzian with a common offset
+    s = (x - cen_f) / wid_f
+    return y_0 + x*gradient + (amp_f * (1 + s / q) ** 2) / (1 + s ** 2) + amp_l * wid_l ** 2/((x - cen_l) ** 2 + wid_l ** 2)
 
 #########################
 # Reading spectral data #
@@ -98,6 +102,8 @@ def get_peak_properties(spectra, column, peak):
         xlims, guess, func, constraints = [263,900], [0.2, 300, 50, 0.2, 350, 50, 0.2, 480, 50, 1, 520, 3, 0], triple_gaussian_plus_lorentzian, ((0, 280, 0, 0, 330, 0, 0, 450, 0, 0, 510, 0, 0), (np.inf, 310, np.inf, np.inf, 380, np.inf, np.inf, 490, np.inf, np.inf, 530, np.inf, np.inf))
     if peak == 'a_si_single_gauss':
         xlims, guess, func, constraints = [263,900], [0.2, 400, 100, 1, 520, 3, 0], gaussian_plus_lorentzian, ((0, 300, 0, 0, 510, 0, 0), (np.inf, 480, np.inf, np.inf, 530, np.inf, np.inf))
+    if peak == 'a_carbon':
+        xlims, guess, func, constraints = [800, 2000], [0.4, 1350, 50, 0.4, 1600, 50, -10, 0, 0], fano_plus_lorentzian, ((0, 1300, 0, 0, 1500, 0, -np.inf, -np.inf, -np.inf), (np.inf, 1500, np.inf, np.inf, 1700, np.inf, 0, np.inf, np.inf))
 
     while spectra.iloc[i,0] < xlims[0]:
         i+=1
