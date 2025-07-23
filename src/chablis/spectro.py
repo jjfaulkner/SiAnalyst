@@ -1,4 +1,4 @@
-from si_analyst.preamble import *
+from chablis.preamble import *
 
 ##################
 # Peak functions #
