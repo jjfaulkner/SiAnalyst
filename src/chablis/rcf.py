@@ -2,8 +2,8 @@ from chablis.preamble import *
 
 A = 1.714e5 # in cm^-2
 B = 1e5 # in cm^-2
-D = -0.3343 # in cm^-1
-Gamma_0 = 2.7401 # in cm^-1
+D = -0.3 # in cm^-1
+Gamma_0 = 2.9 # in cm^-1
 a = 5.43e-8  # in cm
 
 #mu = np.log(80e-7)
@@ -15,8 +15,9 @@ def get_integral_for_diameter(diameter):
 vec_get_integral_for_diameter = np.vectorize(get_integral_for_diameter)
 
 def get_spectrum_for_diameter(diameter, num_points: int):
-    raman_shift = np.linspace(500, 530, num_points)
-    return calc_intensity_from_raman_shift_vectorized(raman_shift, diameter)
+    raman_shift = np.linspace(500, 540, num_points)
+    intensities = calc_intensity_from_raman_shift_vectorized(raman_shift, diameter)
+    return intensities / np.max(intensities)
 
 get_spectrum_for_diameter_vectorized = np.vectorize(get_spectrum_for_diameter, otypes=[np.ndarray])
 
@@ -124,9 +125,15 @@ def pos_fwhm():
     plt.ylim(0, 30)
     print(integrals)
 
+def isolate_rcf_data(map_data):
+    map_data_reduced = map_data[(map_data['Wavenumber'] > 500) & (map_data['Wavenumber'] < 540)]
+    baselines = map_data_reduced.iloc[:,1:].apply(baseline_als)
+    map_data_reduced.iloc[:,1:] = map_data_reduced.iloc[:,1:] - baselines
+    return map_data_reduced
+
 def solve_distribution(spectrum):
     num_points = len(spectrum.iloc[:,0])
-    sizes = np.linspace(1e-7, 100e-7, num_points) # defines the domain over which the size distribution is calculated
+    sizes = np.linspace(5e-7, 30e-7, num_points) # defines the domain over which the size distribution is calculated
     contributions = get_spectrum_for_diameter_vectorized(sizes, num_points) # calculates the contribution of each particle size to the final spectrum
     unpacked_contributions = np.array([np.array(contributions[i]/np.max(contributions[i])) for i in range(num_points)]) # unpacks the contributions into a 2D array, normalising each
 
@@ -136,9 +143,9 @@ def solve_distribution(spectrum):
     #spectrum = np.matmul(calculated_distribution, contributions)
     #spectrum = spectrum/np.max(spectrum)
 
-    spectrum = get_spectrum_for_diameter(10e-7, num_points) # calculates the spectrum for a single particle size (to be tested)
+    #spectrum = get_spectrum_for_diameter(10e-7, num_points) # calculates the spectrum for a single particle size (to be tested)
 
-    spectrum.reshape(num_points,1) # reshapes the spectrum into a column vector
+    #spectrum.reshape(num_points,1) # reshapes the spectrum into a column vector
 
     # Now need to solve the linear system of equations to find the size distribution. 
     # We have the form Ax = b, where A is the transpose of the contributions array, x is the size distribution and b is the spectrum, both column vectors. 
@@ -147,10 +154,17 @@ def solve_distribution(spectrum):
     # It essentially solves the equation, but replaces any negative elements with 0 and deletes those rows/columns before solving again.
     # This is repeated until a solution is found where all elements are positive, and the extra 0s are added back in
 
-    func = lambda x: np.linalg.norm(np.dot(transpose,x)-spectrum)
+    func = lambda x: np.linalg.norm(np.dot(transpose,x)-spectrum.iloc[:,1])
     # xo = np.linalg.solve(A,b)
     # sol = minimize(fun, xo, method='SLSQP', constraints={'type': 'ineq', 'fun': lambda x:  x})
     sol = minimize(func, np.zeros(num_points), method='L-BFGS-B', bounds=[(0.,None) for x in sizes])
 
     x = sol['x']
     return pd.DataFrame({'size': sizes, 'frequency': x})
+
+def get_size_distributions(data):
+    distributions = pd.DataFrame({'sizes': np.linspace(5e-7, 30e-7, len(data.iloc[:,0]))})
+    for i in range(1, len(data.columns)):
+        distribution = solve_distribution(data.iloc[:,[0,i]])
+        distributions[f'spectrum_{i}'] = distribution['frequency']
+    return distributions

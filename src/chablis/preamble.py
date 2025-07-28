@@ -62,4 +62,14 @@ def fig_size(width = 437.46112, fraction = 0.8, subplots=(1, 1), aspect_ratio=1)
     fig_dim = (fig_width_in, fig_height_in)
     return fig_dim
 
-# a little test
+# a clever nonlinear baseline removal (here bc used in spectro and rcf)
+def baseline_als(y, lam=1e8, p=0.005, niter=10):
+    L = len(y)
+    D = sparse.diags([1,-2,1],[0,-1,-2], shape=(L,L-2))
+    w = np.ones(L)
+    for i in range(niter):
+        W = sparse.spdiags(w, 0, L, L)
+        Z = W + lam * D.dot(D.transpose())
+        z = spsolve(Z, w*y)
+        w = p * (y > z) + (1-p) * (y < z)
+    return z

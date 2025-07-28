@@ -25,17 +25,7 @@ def fano_plus_lorentzian(x, amp_l, cen_l, wid_l, amp_f, cen_f, wid_f, q, gradien
 # Reading spectral data #
 #########################
 
-# a clever nonlinear baseline removal
-def baseline_als(y, lam=1e8, p=0.005, niter=10):
-    L = len(y)
-    D = sparse.diags([1,-2,1],[0,-1,-2], shape=(L,L-2))
-    w = np.ones(L)
-    for i in range(niter):
-        W = sparse.spdiags(w, 0, L, L)
-        Z = W + lam * D.dot(D.transpose())
-        z = spsolve(Z, w*y)
-        w = p * (y > z) + (1-p) * (y < z)
-    return z
+
 
 def get_map(name):
     global spectra
@@ -88,7 +78,7 @@ def get_ref_properties(file):
     properties = [popt, perr]
     return properties
 
-def get_peak_properties(spectra, column, peak):
+def get_peak_properties(spectra, column, peak, reverse_x = False):
 
     i = 0
 
@@ -105,12 +95,20 @@ def get_peak_properties(spectra, column, peak):
     if peak == 'a_carbon':
         xlims, guess, func, constraints = [800, 2000], [0.4, 1350, 50, 0.4, 1600, 50, -10, 0, 0], fano_plus_lorentzian, ((0, 1300, 0, 0, 1500, 0, -np.inf, -np.inf, -np.inf), (np.inf, 1500, np.inf, np.inf, 1700, np.inf, 0, np.inf, np.inf))
 
-    while spectra.iloc[i,0] < xlims[0]:
-        i+=1
-    while spectra.iloc[i,0] < xlims[1]:
-        wavenums.append(spectra.iloc[i,0])
-        intensities.append(spectra.iloc[i,column])
-        i+=1
+    if reverse_x == True:
+        while spectra.iloc[i,0] > xlims[1]:
+            i += 1
+        while spectra.iloc[i,0] > xlims[0]:
+            wavenums.append(spectra.iloc[i,0])
+            intensities.append(spectra.iloc[i,column])
+            i += 1
+    else:
+        while i < len(spectra) and spectra.iloc[i,0] < xlims[0]:
+            i += 1
+        while i < len(spectra) and spectra.iloc[i,0] < xlims[1]:
+            wavenums.append(spectra.iloc[i,0])
+            intensities.append(spectra.iloc[i,column])
+            i += 1
 
     popt, pcov = scipy.optimize.curve_fit(func, wavenums, intensities, p0 = guess, bounds=constraints)    # fit the function to the data with the x and y series transformed to lists
     perr = np.sqrt(np.diag(pcov))
