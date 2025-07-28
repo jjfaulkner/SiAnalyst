@@ -1,5 +1,6 @@
 import numpy as np
 import scipy as scipy
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 from matplotlib.colors import LogNorm, Normalize
@@ -14,6 +15,7 @@ from scipy import sparse # for the baseline correction
 from scipy.sparse.linalg import spsolve # for the baseline correction
 from scipy.interpolate import CubicSpline # for interpolating the charge data
 from scipy.interpolate import splrep, BSpline # for smoothed interpolation
+from scipy.optimize import minimize
 import functools
 import pandas as pd
 import glob
@@ -59,3 +61,5 @@ def fig_size(width = 437.46112, fraction = 0.8, subplots=(1, 1), aspect_ratio=1)
     fig_height_in = fig_width_in * aspect_ratio * golden_ratio * (subplots[0] / subplots[1]) # fig height in inches
     fig_dim = (fig_width_in, fig_height_in)
     return fig_dim
+
+# a little test

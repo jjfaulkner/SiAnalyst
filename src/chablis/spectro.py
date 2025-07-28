@@ -39,7 +39,7 @@ def baseline_als(y, lam=1e8, p=0.005, niter=10):
 
 def get_map(name):
     global spectra
-    spectra = pd.read_csv(name, sep='\t', header=None, skiprows = 41).transpose()
+    spectra = pd.read_csv(name, sep='\t', header=None, skiprows = 41, encoding = 'utf-8').transpose()
     spectra.columns = spectra.iloc[0] # I ideally want the columns to be co-ordinates, rather than the y vals being in row 0
     spectra = spectra[1:]
     spectra = spectra.reset_index(drop=True)

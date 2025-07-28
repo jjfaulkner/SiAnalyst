@@ -29,7 +29,7 @@ executing==2.1.0
 fonttools==4.52.4
     # via matplotlib
 ipykernel==6.29.5
-    # via sianalyst
+    # via chablis
 ipython==8.31.0
     # via ipykernel
 jedi==0.19.2
@@ -42,23 +42,23 @@ jupyter-core==5.7.2
 kiwisolver==1.4.5
     # via matplotlib
 matplotlib==3.9.0
-    # via sianalyst
+    # via chablis
 matplotlib-inline==0.1.7
     # via ipykernel
     # via ipython
 nest-asyncio==1.6.0
     # via ipykernel
 numpy==1.26.4
+    # via chablis
     # via contourpy
     # via matplotlib
     # via pandas
     # via scipy
-    # via sianalyst
 packaging==24.0
     # via ipykernel
     # via matplotlib
 pandas==2.2.2
-    # via sianalyst
+    # via chablis
 parso==0.8.4
     # via jedi
 pexpect==4.9.0
@@ -89,7 +89,7 @@ pyzmq==26.2.0
     # via ipykernel
     # via jupyter-client
 scipy==1.13.1
-    # via sianalyst
+    # via chablis
 six==1.16.0
     # via python-dateutil
 stack-data==0.6.3
