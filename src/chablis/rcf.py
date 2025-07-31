@@ -115,7 +115,7 @@ def distribution(mu, sigma, x):
 distribution_vectorized = np.vectorize(distribution)
 
 def pos_fwhm():
-    diameters = np.linspace(4 * 10**-7,100 * 10**-7, 30)
+    diameters = np.linspace(5.2 * 10**-7,100 * 10**-7, 30)
     integrals = vec_get_integral_for_diameter(diameters)
     peak, fwhm = vec_get_func_properties(integrals)
     plt.plot(peak, fwhm)
